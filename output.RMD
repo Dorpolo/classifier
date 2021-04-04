@@ -1,0 +1,417 @@
+---
+title: "Home Assignment"
+author: "Dor Polovincik"
+date: "4/4/2021"
+output:
+  rmarkdown::html_document:
+    theme: lumen
+---
+
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(ggcharts)
+library(reshape2)
+library(purrr)
+library(stringr)
+library(reticulate)
+source("data_wrangler.r")
+
+customGreen = PARAMS$cols$customGreen
+customGreen0 = PARAMS$cols$customGreen0
+customRed = PARAMS$cols$customRed
+```
+
+# Question I
+
+## KPIs Overview - General Population
+
+```{r general_kpis,  fig.height=6, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+general_kpi <- kpi_calculator(df)  %>%
+  mutate_at(1:6, round, 3)
+
+formattable(general_kpi, align = rep('c', 6))
+```
+
+---
+
+## Segmentation
+
+The grouping set is based on the following features permutation:
+
+  * **billing_country_code**
+* **shipping_country_code**
+* **gateway**
+
+I've also used the following features in order to show how Riskified can surpass current merchant solution:
+
+  * **V4_our_age**
+* **V1_link**
+
+---
+
+## Groups KPI Distributions {.tabset}
+
+### Number of Orders
+
+```{r segmentation,  fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+required_features <- PARAMS$relevant_columns
+df_aggregated <- kpi_calculator_multi(required_features) %>% 
+  filter(total_orders > 40) %>%
+  mutate(ar_z = (approval_rate - mean(approval_rate))/sd(approval_rate),
+         cbr_z = (cb_rate - mean(cb_rate))/sd(cb_rate))
+
+df_aggregated %>%
+  ggplot(aes(x=total_orders, fill= PARAMS$cols$customGreen0)) +
+  geom_density() + 
+  theme_ggcharts() +   
+  labs(title = 'Number of Orders by Group',
+       subtitle = 'Distribution',
+       fill = '',
+       x = 'Number of Orders') + 
+  theme(legend.position = 'none')
+```
+
+### Chargeback Rate
+
+```{r cb_rate,  fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+df_aggregated %>% 
+  ggplot(aes(x=cb_rate, fill = PARAMS$cols$customGreen0)) +
+  geom_density() + 
+  theme_ggcharts() +   
+  labs(title = 'Chargeback Rate by Group',
+       subtitle = 'Distribution',
+       fill = '',
+       x = 'Chargeback Rate') + 
+  theme(legend.position = 'none')
+```
+
+### Approval Rate
+
+```{r approval_rate,  fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+df_aggregated %>% 
+  ggplot(aes(x=approval_rate, fill= PARAMS$cols$customGreen0)) +
+  geom_density() + 
+  theme_ggcharts() +   
+  labs(title = 'Approval Rate by Group',
+       subtitle = 'Distribution',
+       fill = '',
+       x = 'Approval Rate') + 
+  theme(legend.position = 'none')
+```
+
+---
+
+## Risky Segments {.tabset}
+
+**Risky segments** will be defined as groups with the following attributes: 
+
+  * Relatively **low Approval Rate**
+* Relatively **high Chargeback Rate**
+
+With the assumption of transaction that are mostly to be declined while having relatively high chargeback rate 
+within specific groups, are very risky and Riskified can do a better job in terms of fraud detection and increasing approval rate.
+
+### Table
+
+```{r riski_segments_a,  fig.height=4, fig.width=9, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+df_risky <- df_aggregated  %>%
+  filter(ar_z < -2, cbr_z > 2) %>%
+  select(billing_country_code, shipping_country_code, gateway, total_orders,
+         total_approved_volume, approval_rate, cb_rate) %>%
+   mutate_at(4:7, round, 3) %>%
+  arrange(desc(total_approved_volume), desc(total_orders))
+
+formattable(df_risky, align =c("c","c","c","c","c", "c", "c"), 
+            list(
+              `total_orders`= color_tile(customGreen0, customGreen),
+              `total_approved_volume`= color_tile(customGreen0, customGreen),
+              `approval_rate`= color_tile(customGreen0, customGreen),
+              `cb_rate`= color_bar(customRed)
+            ))
+```
+
+### Chart
+
+```{r riski_segments_b,  fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+df_risky %>%
+  mutate(label = paste0(billing_country_code, '-', shipping_country_code, str_replace(gateway, 'value_', '-'))) %>%
+  ggplot(aes(x=cb_rate, y=approval_rate, size=total_approved_volume, color=label)) +
+  geom_point(alpha=0.5) + 
+  theme_ggcharts() +   
+  labs(title = 'Chargeback vs. Approval Rate',
+       subtitle = 'by Group',
+       fill = '',
+       size = 'Order Volume',
+       x = 'Chargeback Rate',
+       y = 'Approval Rate') + 
+  theme(legend.position = 'right')
+```
+
+### Riskified Added Value
+```{r riski_segments_c,  fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+
+df_riski_kpis <- df %>% 
+  group_by(across(required_features)) %>% 
+  summarise(avg_riski_age = round(mean(V4_our_age), 1),
+            avg_mer_age =round( mean(V5_merchant_age), 1),
+            linking = round(sum(V1_link)/n(), 2))
+
+df_added_value <- df_risky %>% 
+  left_join(df_riski_kpis, by = required_features) %>%
+  select(required_features, avg_riski_age, avg_mer_age, linking)
+
+formattable(df_added_value, align =rep('c', 6))
+
+```
+
+--- 
+
+## Sub-Optimal Performance {.tabset}
+
+**Sub-Optimal Performance** will be defined as groups with the following attributes: 
+
+  * Relatively **low Approval Rate**
+* Relatively **low Chargeback Rate**
+
+With the assumption of transaction that are mostly to be declined while having relatively low chargeback rate 
+within specific groups, could be approved safely more then they current are.
+
+### Table
+
+```{r sop_segments_a,  fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+df_sop <- df_aggregated  %>%
+  filter(ar_z < -2, cbr_z < 0.25) %>%
+  select(billing_country_code, shipping_country_code, gateway, total_orders,
+         total_approved_volume, approval_rate, cb_rate) %>% 
+  mutate_at(4:7, round, 3) %>%
+  arrange(desc(total_approved_volume), desc(total_orders))
+
+formattable(df_sop, align =rep('c', ncol(df_sop)), 
+            list(
+              `total_orders`= color_tile(customGreen0, customGreen),
+              `total_approved_volume`= color_tile(customGreen0, customGreen),
+              `approval_rate`= color_tile(customGreen0, customGreen),
+              `cb_rate`= color_bar(customRed)
+            ))
+```
+
+### Chart
+
+```{r sop_segments_b,  fig.height=5.5, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+
+df_sop %>%
+  mutate(label = paste0(billing_country_code, '-', shipping_country_code, str_replace(gateway, 'value_', '-'))) %>%
+  ggplot(aes(x=cb_rate, y=approval_rate, size=total_approved_volume, color=label)) +
+  geom_point(alpha=0.5) + 
+  theme_ggcharts() +   
+  labs(title = 'Chargeback vs. Approval Rate',
+       subtitle = 'by Group',
+       fill = '',
+       size = 'Order Volume',
+       x = 'Chargeback Rate',
+       y = 'Approval Rate') + 
+  theme(legend.position = 'right')
+
+```
+
+### Riskified Added Value
+
+```{r sop_segments_c,  fig.height=7, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+df_added_value_sop <- df_sop %>% 
+  left_join(df_riski_kpis, by = required_features) %>%
+  select(required_features, avg_riski_age, avg_mer_age, linking)
+
+formattable(df_added_value_sop, align =rep('c', ncol(df_added_value_sop)))
+```
+
+---
+
+
+# Question II
+
+### Fitting a Predictive Model
+
+Executed by Python (base code under classifier.py)
+
+```{python model_training, warning=FALSE}
+from classifier import ModelExplained
+
+try:
+   # instance = ModelExplained(iteration_range=[500, 5000])
+   # instance.main()
+    print('Uncomment commands in order to trigger the model training proccess')
+except Exception as e:
+   print(e)
+```
+
+## Model Evaluation {.tabset}
+
+### Threshold
+
+```{r threshold,  fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+df_th <- read.csv('data/plots/threshold.csv')
+
+max_val <- df_th %>% 
+  mutate(delta = approval_rate-90) %>% 
+  summarise(ar = min(approval_rate[delta > 0]),
+            th = min(threshold[approval_rate >= ar]),
+            min_ar = min(approval_rate))
+
+df_th %>% 
+  ggplot(aes(x=approval_rate, y=threshold)) +
+  geom_line()  + 
+  theme_ggcharts() +   
+  labs(title = 'Threshold vs. Approval Rate',
+       subtitle = 'Goal: Fitting TH for getting 90% approval rate',
+       y = 'Threshold',
+       x = 'Approval Rate (%)',
+       col = '') +
+  geom_hline(yintercept = max_val$th, col='red') + 
+  geom_text(aes(label=paste0(max_val$th),
+                x = max_val$min_ar,
+                y = max_val$th + 0.05,
+                col = 'red')) + 
+  theme(legend.position = 'none')
+``` 
+
+### Evaluation Metrics
+
+#### Chossing Hyper Parameters
+
+ * Number of Trees
+* Learning Rate
+* Depth
+
+```{r hyper_params,  fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+df_hyper_params <- read.csv('data/plots/hyper_params.csv')
+df_prauc <- read.csv('data/plots/dataset_prauc.csv')
+
+df_show <- df_hyper_params %>% arrange(desc(prauc)) %>%
+  select(trees, learning_rate, depth, prauc, roc_auc) %>% head(10) %>%
+  mutate_at(1:5, round, 2)
+
+formattable(df_show, align =rep('c', ncol(df_show)),  lapply(1:nrow(df_show), function(row) {
+  area(row= 1, col = 1:ncol(df_show)) ~ color_tile("lightpink", "lightpink")
+}))
+
+df_prauc %>%
+  ggplot(aes(x=recall, y=precision)) +
+  geom_line(size = 1, col = 'darkred') + 
+  theme_ggcharts() +
+  labs(title = 'Area Under Precision-Recall Curve',
+       subtitle = 'PR AUC',
+       x = 'Recall',
+       y = 'Precision',
+       color = '') +
+  theme(legend.position = 'none',
+        panel.border = element_rect(colour = "black", fill=NA, size=1))
+  
+``` 
+
+
+### Business Interpretation
+
+```{r business_inter , fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+
+df_th <- read.csv('data/plots/threshold.csv')
+
+threshold <- df_th %>% mutate(delta = approval_rate-90) %>% 
+  summarise(ar = approval_rate[abs(delta) == min(abs(delta))],
+            th = min(threshold[approval_rate >= ar])) %>%
+  filter(ar >= 90)
+
+df_test <- read.csv('data/plots/dataset_test.csv')
+
+mutated_df_test <- df_test %>%
+  mutate(model_declined = ifelse(model_score_1 >= threshold$th, T, F),
+         model_status = case_when(
+           model_declined ~ 'declined',
+           (!model_declined) & status != 'chargeback' ~ 'approved',
+           (!model_declined) & status == 'chargeback' ~ 'chargeback')) 
+
+performence_kpi <- mutated_df_test %>% 
+  summarise(
+    order_count = n(),
+    approval_rate_mer = sum(status != 'declined')/order_count,
+    approval_rate_riski = sum(model_status != 'declined')/order_count,
+    cb_count_mer = sum(status == 'chargeback'),
+    cb_count_riski = sum(model_status == 'chargeback'),
+    cb_paid_mer = sum(total_spent[status == 'chargeback']),
+    cb_paid_riski = sum(total_spent[model_status == 'chargeback']),
+    cb_rate_dollar_mer = cb_paid_mer/sum(total_spent[status != 'declined']),
+    cb_rate_dollar_riski = cb_paid_riski/sum(total_spent[model_status != 'declined']),
+    cb_rate_count_mer = cb_count_mer/sum(status != 'declined'),
+    cb_rate_count_riski = cb_count_riski/sum(model_status != 'declined'),
+    cb_saved_dollar = cb_paid_mer-cb_paid_riski,
+    cb_saved_count = cb_count_mer-cb_count_riski,
+    required_fee = 2*cb_paid_riski/sum(total_spent[model_status != 'declined'])
+  )
+
+output <- model_performence_comp(performence_kpi, 'mer') %>%
+  left_join(model_performence_comp(performence_kpi, 'riski'), on = c('variable'))
+
+cb_saved_pct <- paste0(round(performence_kpi$cb_saved_count*100/performence_kpi$cb_count_mer, 2), '%')
+mutated_df_test <- mutated_df_test %>% filter(model_status == 'approved', status != 'declined') %>% count()
+
+formattable(output, align =rep('c', 3))
+
+```
+
+### Insights
+
+* We were able to save  **__`r cb_saved_pct`__** chargebacks.
+* We approved **__`r mutated_df_test$n`__**  declines, those should be assessed.
+
+---
+
+# Question III
+
+Based on the performance of the model I trained, the **fee** that we should quote the merchant 
+in order **total cost of chargebacks to be 50% of our total revenue** will be calculated as follow:
+
+* **volume**: Total volume of transactions that were approved (including chargebacks)
+* **chargeback**: Chargeback paid by Riskified (according to the suggested model)
+* **fee**: Required fee  
+
+$$
+\frac{1}{2} = \frac{chargeback}{volume*fee}
+$$
+$$
+fee = \frac{2*chargeback}{volume}
+$$
+
+* Calculated result:
+
+```{r merchant_fee , fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+data <- tibble(`Required Fee` = paste0(round(performence_kpi$required_fee*100, 3),'%'))
+
+formattable(data, align =rep('c', 1),  lapply(1:nrow(data), function(row) {
+  area(row= 1, col = 1:1) ~ color_tile("lightblue", "lightblue")
+}))
+```
+
+---
+
+# Bonus Question
+
+The probability that my model will score the approved order higher than the chargeback is the ROC AUC metric, as presented bellow.
+
+```{r bonus , fig.height=4, fig.width=7, message=FALSE, warning=FALSE, paged.print=TRUE, fig.align="center"}
+roc_auc <- (df_hyper_params %>% filter(prauc == max(prauc)) %>% head(1))$roc_auc
+data_roc_auc <- tibble(`ROC AUC` = paste0(round(roc_auc*100, 3),'%'))
+
+formattable(data_roc_auc, align =rep('c', 1),  lapply(1:nrow(data), function(row) {
+  area(row= 1, col = 1:1) ~ color_tile("lightblue", "lightblue")
+}))
+
+# consider:
+# data_approved <- mutated_df_test %>% filter(model_status != 'declined')
+# val <- auc(data_approved$y, data_approved$model_score_1)
+
+
+
+
+```
+

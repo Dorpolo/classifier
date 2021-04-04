@@ -1,0 +1,123 @@
+Variables:
+  order_id:
+    type: 'string'
+    description: 'transaction_id'
+    importence: 0
+    model: False
+  status:
+    type: 'string'
+    description: 'order status'
+    importence: 0
+    model: False
+    potential_values:
+      approved: 'the order was approved and didn’t return as a chargeback'
+      declined: 'the transaction was rejected by the merchant due to being too risky'
+      chargeback: 'the order was originally approved and later had a chargeback'
+  email_anoni: 
+     type: 'string'
+     description: 'encrypted email of the buyer'
+     importence: 0
+     model: True
+  billing_country_code:
+     type: 'string'
+     description: 'billing_country_coder'
+     importence: 1
+     model: True
+  shipping_country_code:
+     type: 'string'
+     description: 'shipping_country_code'
+     importence: 1
+     model: True
+  shipping_method:
+     type: 'string'
+     description: 'shipping_method'
+     importence: 0
+     model: True
+  created_at: 
+     type: 'timestamp'
+     description: 'time when the order was created'
+     importence: 0
+     model: False
+  total_spent: 
+     type: 'numeric'
+     description: 'total value of the transaction including shipping'
+     importence: 0
+     model: True
+  currency_code: 
+     type: 'string'
+     description: 'type of currency used in the transaction'
+     importence: 0
+     model: True
+  gateway: 
+     type: 'string'
+     description: 'service provider used to authorize credit card payments'
+     importence: 1
+     model: True
+  V1_link: 
+     type: 'boolean'
+     description: 'feature related to the history of the customer in our system'
+     importence: -1
+     model: True
+  V2_distance: 
+     type: 'numeric'
+     description: 'distance between two data points in the transaction'
+     importence: 0
+     model: True
+  V3_distance: 
+     type: 'numeric'
+     description: 'distance between two data points in the transaction'
+     importence: 0
+     model: True
+  V4_our_age: 
+     type: 'numeric'
+     description: > 
+      age of the customer in our systems
+     importence: -1
+     model: True
+  V5_merchant_age: 
+     type: 'numeric'
+     description: >
+      age of the customer based on the merchant’s data
+     importence: 0
+     model: True
+  V6_avs_result: 
+     type: 'string'
+     description: > 
+      level of matching between billing address supplied in the transaction 
+      and the billing address on file with the credit card
+     importence: 0
+     model: True
+  V7_bill_ship_name_match:
+     type: 'string'
+     description: > 
+      comparison between the billing name and the shipping name 
+     potential_values:
+        F: 'first name matches'
+        L: 'last name matches'
+        FL: 'both names match'
+     importence: 0
+     model: True
+  V8_ip: 
+     type: 'numeric'
+     description: > 
+      risk score of the IP
+     importence: 0
+     model: True
+  V9_cookie: 
+     type: 'numeric'
+     description: > 
+      numeric features created from the cookie data
+     importence: 0
+     model: True
+  V10_cookie: 
+     type: 'numeric'
+     description: > 
+      numeric features created from the cookie data
+     importence: 0
+     model: True
+  V11_cookie: 
+     type: 'numeric'
+     description: > 
+      numeric features created from the cookie data
+     importence: 0
+     smodel: True
