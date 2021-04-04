@@ -27,36 +27,50 @@
 
   * PLEASE NOTE: 
        * In order to re-run the model, you can easily render the RMD file after uncommenting the 2 python lines in the relevant chunk (and choose required trees learning hyper params range). This process will take time as model will be trained.
-       * For quick run - please choose small values in **iteration_range** class param, and the proccess will be run very quickly
+       * For quick run - please choose small values in **iteration_range** class param, and the proccess will be run quickly
 
-```{python}
-from classifier import ModelExplained
+       ```{python}
+       from classifier import ModelExplained
 
-try:
-   # instance = ModelExplained(iteration_range=[500, 5000])
-   # instance.main()
-   print('Uncomment commands in order to trigger the model training proccess')
-except Exception as e:
-   print(e)
-```
+       try:
+          # instance = ModelExplained(iteration_range=[500, 5000])
+          # instance.main()
+          print('Uncomment commands in order to trigger the model training proccess')
+       except Exception as e:
+          print(e)
+       ```
 
 --- 
 
 ## Prequisits 
   * Rstudio
   * Python - The R project should include Python virtual envoirment inside the project directory (can be installed using the [following link](https://support.rstudio.com/hc/en-us/articles/360023654474-Installing-and-Configuring-Python-with-RStudio))
+
+       1. installing virtualenv package
        ```
        pip install virtualenv
        ```
+       
+       2. cd'ing localy to the cloned repository 
+             
        ```
        cd <project-dir>
        ```
+       
+       3. triggering new virtual env
+       
        ```
        virtualenv python
        ```
+       
+       4. activating env
+       
        ```
        source python/bin/activate
        ```
+       
+       5. installing project's reauired python's packages
+       
        ```
        pip install pandas plotly catboost sklearn numpy
        ```
