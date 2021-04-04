@@ -56,11 +56,11 @@ class ModelExplained:
         """
         self.data['y'] = [0 if item == 'approved' else 1 for item in self.data['status'].to_list()]
         self.data['email_anoni'] = [item for item in self.data['email_anoni'].to_list()]
-        full_data = self.data_imputation(self.data, self.feature_list)
-        X = full_data
-        y = full_data['y']
+        X = self.data
+        y = self.data['y']
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=0)
-        self.X_train = self.X_train[self.model_features]
+        self.X_train = self.data_imputation(self.X_train, self.feature_list)[self.model_features]
+        self.X_test = self.data_imputation(self.X_test, self.feature_list)
         return True
 
     def param_model_training(self, learning_rate: float, depth: int, trees: int) -> tuple:
