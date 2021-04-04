@@ -1,5 +1,7 @@
 # Home Assignment
 
+--- 
+
 ## Project Structure
 
   * configs.py - holds feature metadata and loading project dataset.
@@ -14,6 +16,7 @@
       * plots
          * .csv files that produced during the python's ModelExplained class run. Served as datasets for project plots.
 
+---
 
  ## Project Presentation
   
@@ -39,9 +42,11 @@ except Exception as e:
    print(e)
 ```
 
+--- 
+
 ## Prequisits 
 
   * Python - The project inclding python virtual-env with all the relevant pip installs.
-  * Rstudio - all packages should be installed/
+  * Rstudio - all packages should be installed.
 
                  
