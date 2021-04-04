@@ -1,3 +1,11 @@
+# install required packages
+list.of.packages <- c('dplyr', 'ggplot2', 'ggcharts', 'reshape2', 'purrr', 'lazyeval',
+                      'yaml', 'data.table' ,'formattable', 'pROC')
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+
+if(length(new.packages)) install.packages(new.packages)
+
 library(dplyr)
 library(ggplot2)
 library(ggcharts)
@@ -12,8 +20,8 @@ library(pROC)
 df <- read.csv('data/dataset.csv')
 
 PARAMS = list(
-    fee = 0.003,
-    min_cb = 0.025,
+    fee = 0.003, # not relevant
+    min_cb = 0.025, # not relevant
     relevant_columns = c('billing_country_code', 'shipping_country_code', 'gateway'),
     cols = list(
       customGreen0 = "#DeF7E9",
