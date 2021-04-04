@@ -43,8 +43,24 @@ except Exception as e:
 --- 
 
 ## Prequisits 
-
-  * Python - The project inclding python virtual-env with all the relevant pip installs.
-  * Rstudio.
+  * Rstudio
+  * Python - The R project should include Python virtual envoirment inside the project directory (can be installed using the [following link](https://support.rstudio.com/hc/en-us/articles/360023654474-Installing-and-Configuring-Python-with-RStudio))
+       ```
+       pip install virtualenv
+       ```
+       ```
+       cd <project-dir>
+       ```
+       ```
+       virtualenv python
+       ```
+       ```
+       source python/bin/activate
+       ```
+       ```
+       pip install pandas plotly catboost sklearn numpy
+       ```
+    
+  
 
                  
