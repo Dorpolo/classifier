@@ -32,7 +32,7 @@
            3. Configuring required `iteration_range` (list object) hyper param param. 
        
        * Please consider that this process will take some time as the model will be trained.
-           * For quick run - please choose small values in **iteration_range** class param, and the proccess will be run quickly
+           * For quick run - please choose small values in `iteration_range` class param, and the proccess will be run quickly
 
        ```{python}
        from classifier import ModelExplained
