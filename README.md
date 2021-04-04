@@ -35,7 +35,7 @@ from classifier import ModelExplained
 try:
    # instance = ModelExplained(iteration_range=[500, 5000])
    # instance.main()
-    print('Uncomment commands in order to trigger the model training proccess')
+   print('Uncomment commands in order to trigger the model training proccess')
 except Exception as e:
    print(e)
 ```
@@ -45,6 +45,6 @@ except Exception as e:
 ## Prequisits 
 
   * Python - The project inclding python virtual-env with all the relevant pip installs.
-  * Rstudio - all packages should be installed.
+  * Rstudio.
 
                  
