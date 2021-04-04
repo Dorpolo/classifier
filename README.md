@@ -26,8 +26,13 @@
   * The output presents the best performed model, based on the above params, including evluation metrics comparison.
 
   * PLEASE NOTE: 
-       * In order to re-run the model, you can easily render the RMD file after uncommenting the 2 python lines in the relevant chunk (and choose required trees learning hyper params range). This process will take time as model will be trained.
-       * For quick run - please choose small values in **iteration_range** class param, and the proccess will be run quickly
+       * In order to re-run the full proccess (chossing hyper params, trianing the model accordingly and genreate results), you can easily render the RMD file after doing the following actions:
+       1. Installing Python's virual envoirment (see bellow)
+       2. Uncommenting the 2 python lines in the relevant chunk
+       3. Configuring required `iteration_range` (list object) hyper param param. 
+       
+       * Please consider that this process will take some time as the model will be trained.
+           * For quick run - please choose small values in **iteration_range** class param, and the proccess will be run quickly
 
        ```{python}
        from classifier import ModelExplained
