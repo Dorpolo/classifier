@@ -1,7 +1,5 @@
 # Home Assignment
 
---- 
-
 ## Project Structure
 
   * configs.py - holds feature metadata and loading project dataset.
