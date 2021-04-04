@@ -20,11 +20,13 @@
   * The presented HTML holds the final trained model, after picking hyper parameters from the following ranges:
       * Learning Rate: [0.16, 0.17, 0.18, 0.19]
       * Depth: [7, 8, 9]
-      * Trees: [500, 5000]
+      * Trees (iterations): [500, 5000]
 
   * The output presents the best performed model, based on the above params, including evluation metrics comparison.
 
-  * PLEASE NOTE: in order to re-run the model, you can easily render the RMD file after uncommenting the 2 python lines in the relevant chunk (and choose required   trees learning hyper params range). This process will take time as model will be trained, but small values in the trees can be 
+  * PLEASE NOTE: 
+       * In order to re-run the model, you can easily render the RMD file after uncommenting the 2 python lines in the relevant chunk (and choose required trees learning hyper params range). This process will take time as model will be trained.
+       * For quick run - please choose small values in **iteration_range** class param, and the proccess will be run very quickly
 
 ```{python}
 from classifier import ModelExplained
@@ -36,5 +38,10 @@ try:
 except Exception as e:
    print(e)
 ```
+
+## Prequisits 
+
+  * Python - The project inclding python virtual-env with all the relevant pip installs.
+  * Rstudio - all packages should be installed/
 
                  
