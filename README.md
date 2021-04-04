@@ -9,4 +9,8 @@
   
   * **output.html** - MAIN PROJECT OUTPUT, generated project's final output as .html file.
   
+  * data
+      * dataset.csv - project dataset
+      * plots
+         * .csv files that produced during the python's ModelExplained class run. Served as datasets for project plots.
   
