@@ -1,4 +1,4 @@
-# Home Assignment
+# Classifier Project
 
 ## Project Structure
 
